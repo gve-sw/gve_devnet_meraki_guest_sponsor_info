@@ -22,12 +22,12 @@ The prototype Python script creates a CSV report in five steps:
 * Simon Fang (sifang@cisco.com)
 
 ## Solution Components
-* Python
+* Python 3
 * Meraki Dashboard
 * Meraki MR
 
 ## Prerequisites
-* Merak Dashboard API Access enabled
+* Meraki Dashboard API Access enabled
 * Sponsored Guest Flow enabled
 
 ## How to obtain a Meraki API Key
@@ -48,7 +48,7 @@ In order to use the Cisco Meraki API, you have to enable the API for your organi
 
 > For more information on how to generate an API key, please click here [here](https://documentation.meraki.com/General_Administration/Other_Topics/Cisco_Meraki_Dashboard_API)
 
-> Note: Make sure this API key has write access to both the source and target organization. You can add your account as Full Organization Admin to both organizations by following the instructions [here](https://documentation.meraki.com/General_Administration/Managing_Dashboard_Access/Managing_Dashboard_Administrators_and_Permissions).
+> Note: Make sure this API key has write access to the organization. You can add your account as Full Organization Admin to the organization by following the instructions [here](https://documentation.meraki.com/General_Administration/Managing_Dashboard_Access/Managing_Dashboard_Administrators_and_Permissions).
 
 ## How to enable the Sponsored Guest flow
 The Sponsored Guest flow allows guests to wirelessly authenticate themselves and gain access to the network through a sponsor. The sponsor needs to verify the identity of the guest. In the following section, it will be explained how to enable this flow:
@@ -70,7 +70,7 @@ There are multiple ways to obtain the network ID. One of the ways is through the
 
 3. Navigate to **Endpoints > API > GENERAL > organizations > CONFIGURE > Get Organizations** and add the Meraki API key to `X-Cisco-Meraki-API-Key` in **Configuration**. 
 
-4. Make the call by clicking on **Run**. 
+4. Make the call to the `/organizations` endpoint by clicking on **Run**. 
 
 5. Copy the `id` from the response with the correct `organization name`. 
 
