@@ -1,0 +1,3 @@
+*.DS_Store
+csv_reports/*
+!csv_reports/.gitkeep
