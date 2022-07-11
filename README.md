@@ -1,6 +1,8 @@
 # GVE DevNet Meraki Guest Sponsor Info
 Cisco Meraki provides a cloud-managed network with rich functionality. One of these functionalities is a _Sponsored Guest Login_, which allows guests to authenticate wirelessly and request access to the wireless network. Through a splash page, they will have to specify a _sponsor_ from the corporate domain. The sponsor will receive a confirmation email and verify that the guest wants to connect to the guest network. While the Meraki Dashboard does provide reporting and CSV exports about the wireless network, at the time of writing the default CSV reports do not include information about the sponsor and when the authorization expires. However, this information is available in the Meraki Dashboard. This prototype shows how to obtain the information from the Meraki Dashboard and display the information in a CSV report through a Python script. 
 
+> Please note: this script uses both documented and undocumented API calls. Using undocumented API calls is at your own risk. In case the API call changes, then no support or limited support will be given.
+
 The prototype Python script creates a CSV report in five steps:
 
 1. Log in to the Meraki Dashboard
@@ -22,7 +24,7 @@ The prototype Python script creates a CSV report in five steps:
 * Simon Fang (sifang@cisco.com)
 
 ## Solution Components
-* Python 3
+* Python 3.8 or higher
 * Meraki Dashboard
 * Meraki MR
 
@@ -138,8 +140,6 @@ Now it is time to run the script:
     $ python main.py
 
 This script can be scheduled to run at a fixed cadence, which will result in a new report each time. You can find the CSV report in the folder `csv_reports`.
-
-
 
 
 # Screenshots
