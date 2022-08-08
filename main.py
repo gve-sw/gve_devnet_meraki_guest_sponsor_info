@@ -19,7 +19,6 @@ __copyright__ = "Copyright (c) 2022 Cisco and/or its affiliates."
 __license__ = "Cisco Sample Code License, Version 1.1"
 
 import requests
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -37,6 +36,7 @@ MERAKI_API_KEY = os.getenv('MERAKI_API_KEY')
 
 BASE_URL = "https://account.meraki.com"
 MERAKI_API_URL = "https://dashboard.meraki.com/api"
+API_BASE_URL = "https://api.meraki.com/api"
 
 # Establish a session
 session = requests.Session()
@@ -56,43 +56,6 @@ def post_login_credentials():
     if response.ok:
         print("*** The login credentials were successfully posted ***")
         
-
-def get_org_url_from_org_list():
-    print("*** Getting the org url from the org list ***")
-    url = f'{BASE_URL}/login/org_list'
-    response = session.get(url)
-    if response.ok:
-        print("*** The org list was successfully obtained ***")
-
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    print(soup.find_all('a'))
-
-    for tag in soup.find_all('a'):
-        if MERAKI_ORGANIZATION_NAME in tag:
-            org_url = tag.get('href')
-            return org_url
-    # Could not find org url
-    print(f"Org_url could not be obtained for {MERAKI_ORGANIZATION_NAME}")
-    return None
-
-def get_dashboard_base_url(org_url):
-    print("*** Getting the dashboard base url ***")
-    # Choose org
-    url = f'{BASE_URL}{org_url}'
-    response = session.get(url)
-    if response.history:
-        print("The request was redirected to the following dashboard url:")
-        # Obtain last redirect url
-        dashboard_url = response.history[-1].url
-        # Remove dashboard from dashboard url
-        DASHBOARD_BASE_URL = dashboard_url[:-10]
-        print(DASHBOARD_BASE_URL)
-        return DASHBOARD_BASE_URL
-    else:
-        print("Request was not redirected")
-        return 
-
 def get_clients_connected_to_guest_SSID():
     print("Let's obtain the clients connected to the guest SSID")
     url = f'{MERAKI_API_URL}/v0/networks/{NETWORK_ID}/clients'
@@ -110,7 +73,7 @@ def get_clients_connected_to_guest_SSID():
 
     return guest_clients
 
-def get_AP_from_clients_endpoint(DASHBOARD_BASE_URL, client_id):
+def get_AP_from_clients_endpoint(client_id):
     url = f"{MERAKI_API_URL}/v1/networks/{NETWORK_ID}/clients?perPage=1000" #adapt code if there are more than 1000 clients
     headers = {
         'X-Cisco-Meraki-API-Key': MERAKI_API_KEY
@@ -150,7 +113,7 @@ def get_splash_info_per_client_id(DASHBOARD_BASE_URL, client_id):
     splash_info['sponsor_email'] = client_info['wireless_bigacl'][0]['sponsor_email']
     splash_info['authorized'] = client_info['wireless_bigacl'][0]['authorized']
     splash_info['expires'] = client_info['wireless_bigacl'][0]['expires']
-    splash_info['AP'] = get_AP_from_clients_endpoint(DASHBOARD_BASE_URL, client_id)
+    splash_info['AP'] = get_AP_from_clients_endpoint(client_id)
     splash_info['ssid'] = client_info["ssid_name"]
     return splash_info
 
@@ -165,20 +128,37 @@ def write_to_csv_from_splash_infos(splash_infos):
     except Exception as e:
         print(e)
 
+def get_organizations():
+    print("*** Let's obtain a list of organizations ***")
+    url = f'{API_BASE_URL}/v1/organizations'
+    headers = {
+        'X-Cisco-Meraki-API-Key': MERAKI_API_KEY
+    }
+    response = requests.get(url, headers=headers)
+    if response.ok:
+        print("*** A list of organizations was successfully obtained ***")
+    response.raise_for_status()
+    return response.json()
+
+
 # Main function
 def main():
     # Log in to Meraki Dashboard
     post_login_credentials()
 
-    # Get list of organizations
-    org_url = get_org_url_from_org_list()
+    # Get organizations
+    orgs = get_organizations()
+    DASHBOARD_BASE_URL = ""
 
-    # If none, then exit
-    if not org_url:
+    for org in orgs:
+        if MERAKI_ORGANIZATION_NAME in org["name"]:
+            # Note: format of the url is "https://n[insert_number].meraki.com/[insert_name]/insert_id]/manage/organization/overview"
+            # However, we would like to have the following format: "https://n[insert_number].meraki.com/[insert_name]/insert_id]/manage"
+            DASHBOARD_BASE_URL = org["url"][:-22]
+
+    # If we cannot find the dashboard base url, then exit the app
+    if not DASHBOARD_BASE_URL:
         sys.exit()
-
-    # Get dashboard base url from org url
-    DASHBOARD_BASE_URL = get_dashboard_base_url(org_url)
 
     # Get list of clients connected to a specific SSID
     guest_clients =  get_clients_connected_to_guest_SSID()
